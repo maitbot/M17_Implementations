@@ -20,10 +20,10 @@ if( NOT ${BUILD_SHARED_LIB} AND NOT ${BUILD_STATIC_LIB} )
 endif()
 
 cmake_dependent_option(BUILD_STATIC_BINS "Build using static library" OFF "BUILD_STATIC_LIB" OFF)
-if( BUILD_STATIC_BINS )
-  set(libm17 m17-static)
+if( BUILD_STATIC_BINS OR NOT BUILD_SHARED_LIB)
+  set(lm17 m17-static)
 else()
-    set(libm17 m17-shared)
+    set(lm17 libm17)
 endif()
 
 if(MSVC)
@@ -61,9 +61,10 @@ lib/payload/crc.c)
 
 if ( BUILD_STATIC_LIB )
  add_library(m17-static STATIC ${libm17_SOURCES})
- target_include_directories(m17-static PUBLIC lib
+ target_include_directories(m17-static PUBLIC
   $<INSTALL_INTERFACE:include>
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/lib>
  )
  set_target_properties(m17-static PROPERTIES OUTPUT_NAME m17)
  target_link_libraries(m17-static PUBLIC -lm)
@@ -71,31 +72,62 @@ if ( BUILD_STATIC_LIB )
 endif()
 
 if (BUILD_SHARED_LIB )
- add_library(m17-shared SHARED ${libm17_SOURCES})
- target_include_directories(m17-shared PUBLIC lib
+ add_library(libm17 SHARED ${libm17_SOURCES})
+ target_include_directories(libm17 PUBLIC
   $<INSTALL_INTERFACE:include>
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/lib>
  )
- set_target_properties(m17-shared PROPERTIES
+ set_target_properties(libm17 PROPERTIES
     MACOSX_RPATH TRUE
     OUTPUT_NAME m17
     VERSION "${PROJECT_VERSION}"
     SOVERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
- target_link_libraries(m17-shared PUBLIC -lm)
- install(TARGETS m17-shared)
+ target_link_libraries(libm17 PUBLIC -lm)
+ install(TARGETS libm17 EXPORT libm17)
+
+# CMake interface files
+include( CMakePackageConfigHelpers )
+
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/cmake/libm17Config.cmake"
+"include (\${CMAKE_CURRENT_LIST_DIR}/libm17Targets.cmake)\n")
+
+write_basic_package_version_file(
+ ${CMAKE_CURRENT_BINARY_DIR}/cmake/libm17ConfigVersion.cmake
+  VERSION ${libm17_VERSION}
+  COMPATIBILITY SameMajorVersion
+)
+
+install(EXPORT libm17
+  FILE
+     libm17Targets.cmake
+  NAMESPACE
+     libm17::
+  DESTINATION
+     ${CMAKE_INSTALL_LIBDIR}/cmake/libm17
+)
+
+install(
+  FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake/libm17Config.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake/libm17ConfigVersion.cmake
+  DESTINATION
+    ${CMAKE_INSTALL_LIBDIR}/cmake/libm17
+)
+
 endif()
 
 add_executable(m17-coder-sym m17-coder/m17-coder-sym.c)
-target_link_libraries(m17-coder-sym ${libm17})
+target_link_libraries(m17-coder-sym ${lm17})
 
 add_executable(m17-decoder-sym m17-decoder/m17-decoder-sym.c)
-target_link_libraries(m17-decoder-sym ${libm17})
+target_link_libraries(m17-decoder-sym ${lm17})
 
 add_executable(m17-packet-encode m17-packet/m17-packet-encode.c)
-target_link_libraries(m17-packet-encode ${libm17})
+target_link_libraries(m17-packet-encode ${lm17})
 
 add_executable(m17-packet-decode m17-packet/m17-packet-decode.c)
-target_link_libraries(m17-packet-decode ${libm17})
+target_link_libraries(m17-packet-decode ${lm17})
 
 install(TARGETS m17-coder-sym m17-decoder-sym m17-packet-encode m17-packet-decode)
 
