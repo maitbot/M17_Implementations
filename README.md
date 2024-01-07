@@ -12,7 +12,37 @@ Written in C, it has all the components described by the protocol's specificatio
 
 There's no support for **any** encryption yet.
 
-### Building
+## Building - Either using Makefiles or newer CMake builds
+### Building with CMake
+
+The file CMakeLists.txt in M17_Implementations/SP5WWP makes building and testing
+libm17 much like any other CMake using project. CMake works well placing its generated
+output in a new build directory, which should not be checked in to any git repo.
+
+Let's use "builddir" to be the name of that build directory (you can use whatever name you like):
+
+```
+cd M17_Implementations/SP5WWP
+cmake -B builddir
+cmake --build builddir
+cmake --build builddir --target test
+ctest --test-dir builddir
+DESTDIR=/tmp/m17root cmake --install builddir
+rm -rf builddir
+```
+
+Additional configuration options can be made at the `cmake -B` step:
+```
+cmake -B builddir -DBUILD_SHARED_LIB=OFF -DCMAKE_INSTALL_PREFIX=/opt -DCMAKE_BUILD_TYPE=Debug
+```
+
+The compiled library and executables are in the builddir after the building step, and CMake
+also handles installing things on your system.
+
+At this time the CMake test target is minimal. See the rest of this file for doing your own
+hands-on interactive testing.
+
+### Building with Makefiles
 First, build the shared object `libm17.so`:
 ```
 cd M17_Implementations/SP5WWP/lib
