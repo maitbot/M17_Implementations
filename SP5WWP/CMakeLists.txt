@@ -57,7 +57,8 @@ lib/math/math.c
 lib/math/golay.c
 lib/lib.c
 lib/payload/call.c
-lib/payload/crc.c)
+lib/payload/crc.c
+lib/payload/lich.c)
 
 if ( BUILD_STATIC_LIB )
  add_library(m17-static STATIC ${libm17_SOURCES})
@@ -133,3 +134,5 @@ install(FILES include/m17/m17.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/m17/)
 
 add_test(NAME m17-packet-encode_runs
  COMMAND sh -c "echo -en \"\\x05Testing M17 packet mode.\" | ./m17-packet-encode -S N0CALL -D ALL -C 0 -n 25 -o baseband.rrc")
+
+#add_subdirectory(tests)
