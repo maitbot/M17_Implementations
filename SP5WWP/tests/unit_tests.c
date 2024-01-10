@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
-#include <unity/unity.h>
+#include <unity.h>
 #include <m17/m17.h>
 
 //this is run before every test
