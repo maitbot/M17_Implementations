@@ -11,7 +11,7 @@
 // M17 Project, 29 December 2023
 //--------------------------------------------------------------------
 #include <math.h>
-#include "math.h"
+#include <m17/m17.h>
 
 /**
  * @brief Utility function returning the absolute value of a difference between
@@ -151,6 +151,17 @@ uint16_t soft_bit_XOR(const uint16_t a, const uint16_t b)
 	//a(1-b)+b(1-a)
 	//return mul16(div16(0xFFFF-b, 0xFFFF), div16(a, 0xFFFF)) + mul16(div16(b, 0xFFFF), div16(0xFFFF-a, 0xFFFF));
 	return add16(mul16(a, sub16(0xFFFF, b)), mul16(b, sub16(0xFFFF, a)));
+}
+
+/**
+ * @brief Soft logic NOT.
+ * 
+ * @param a Input A.
+ * @return uint16_t Output = not A.
+ */
+uint16_t soft_bit_NOT(const uint16_t a)
+{
+	return 0xFFFFU-a;
 }
 
 /**

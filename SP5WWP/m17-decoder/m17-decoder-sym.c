@@ -4,18 +4,7 @@
 #include <string.h>
 
 //libm17
-#include <lib.h>
-#include <decode/symbols.h>
-#include <decode/viterbi.h>
-#include <encode/convol.h>
-#include <encode/symbols.h>
-#include <math/golay.h>
-#include <math/math.h>
-#include <payload/call.h>
-#include <payload/crc.h>
-#include <phy/interleave.h>
-#include <phy/sync.h>
-#include <phy/randomize.h>
+#include <m17/m17.h>
 
 #define DECODE_CALLSIGNS
 #define SHOW_VITERBI_ERRS
@@ -89,58 +78,14 @@ int main(void)
             if(pushed==SYM_PER_PLD)
             {
                 //common operations for all frame types
-                //decode symbols to soft dibits
-                for(uint8_t i=0; i<SYM_PER_PLD; i++)
-                {
-                    //bit 0
-                    if(pld[i]>=symbol_map[3])
-                    {
-                        soft_bit[i*2+1]=0xFFFF;
-                    }
-                    else if(pld[i]>=symbol_map[2])
-                    {
-                        soft_bit[i*2+1]=-(float)0xFFFF/(symbol_map[3]-symbol_map[2])*symbol_map[2]+pld[i]*(float)0xFFFF/(symbol_map[3]-symbol_map[2]);
-                    }
-                    else if(pld[i]>=symbol_map[1])
-                    {
-                        soft_bit[i*2+1]=0x0000;
-                    }
-                    else if(pld[i]>=symbol_map[0])
-                    {
-                        soft_bit[i*2+1]=(float)0xFFFF/(symbol_map[1]-symbol_map[0])*symbol_map[1]-pld[i]*(float)0xFFFF/(symbol_map[1]-symbol_map[0]);
-                    }
-                    else
-                    {
-                        soft_bit[i*2+1]=0xFFFF;
-                    }
-
-                    //bit 1
-                    if(pld[i]>=symbol_map[2])
-                    {
-                        soft_bit[i*2]=0x0000;
-                    }
-                    else if(pld[i]>=symbol_map[1])
-                    {
-                        soft_bit[i*2]=0x7FFF-pld[i]*(float)0xFFFF/(symbol_map[2]-symbol_map[1]);
-                    }
-                    else
-                    {
-                        soft_bit[i*2]=0xFFFF;
-                    }
-                }
+                //slice symbols to soft dibits
+                slice_symbols(soft_bit, pld);
 
                 //derandomize
-                for(uint16_t i=0; i<SYM_PER_PLD*2; i++)
-                {
-                    if((rand_seq[i/8]>>(7-(i%8)))&1) //soft XOR. flip soft bit if "1"
-                        soft_bit[i]=0xFFFF-soft_bit[i];
-                }
+                randomize_soft_bits(soft_bit);
 
                 //deinterleave
-                for(uint16_t i=0; i<SYM_PER_PLD*2; i++)
-                {
-                    d_soft_bit[i]=soft_bit[intrl_seq[i]];
-                }
+                reorder_soft_bits(d_soft_bit, soft_bit);
 
                 //if it is a frame
                 if(!fl)

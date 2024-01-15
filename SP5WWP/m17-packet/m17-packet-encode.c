@@ -5,17 +5,7 @@
 #include <math.h>
 
 //libm17
-#include <lib.h>
-#include <encode/convol.h>
-#include <encode/symbols.h>
-#include <math/golay.h>
-#include <math/rrc.h>
-#include <payload/call.h>
-#include <payload/crc.h>
-#include <payload/lsf.h>
-#include <phy/interleave.h>
-#include <phy/randomize.h>
-#include <phy/sync.h>
+#include <m17/m17.h>
 
 #define FLT_LEN         (BSB_SPS*FLT_SPAN+1)                //for 48kHz sample rate this is 81
 
@@ -232,7 +222,7 @@ int main(int argc, char* argv[])
     //fprintf(stderr, "DST: %02X %02X %02X %02X %02X %02X\n", lsf.dst[0], lsf.dst[1], lsf.dst[2], lsf.dst[3], lsf.dst[4], lsf.dst[5]);
     //fprintf(stderr, "SRC: %02X %02X %02X %02X %02X %02X\n", lsf.src[0], lsf.src[1], lsf.src[2], lsf.src[3], lsf.src[4], lsf.src[5]);
     fprintf(stderr, "Data CRC:\t%04hX\n", packet_crc);
-    type=((uint16_t)0b01<<1)|((uint16_t)can<<7); //packet mode, content: data
+    type=((uint16_t)0x01<<1)|((uint16_t)can<<7); //packet mode, content: data
     lsf.type[0]=(uint16_t)type>>8;
     lsf.type[1]=(uint16_t)type&0xFF;
     memset(&lsf.meta, 0, 112/8);
